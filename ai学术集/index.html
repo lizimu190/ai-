@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 学术知识库</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Noto Serif SC"', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #f8f9fa;
+    }
+    .font-serif {
+      font-family: 'Noto Serif SC', Georgia, serif;
+    }
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fade-in 0.5s ease-out forwards;
+    }
+    @keyframes pulse-dot {
+      0%, 80%, 100% { opacity: 0.3; }
+      40% { opacity: 1; }
+    }
+    .loading-dot {
+      animation: pulse-dot 1.4s infinite ease-in-out both;
+    }
+    .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+    .loading-dot:nth-child(3) { animation-delay: 0s; }
+    @keyframes skeleton-shimmer {
+      0% { background-position: -200px 0; }
+      100% { background-position: calc(200px + 100%) 0; }
+    }
+    .skeleton-line {
+      background: #e2e8f0;
+      background-image: linear-gradient(90deg, #e2e8f0 0px, #f1f5f9 40px, #e2e8f0 80px);
+      background-size: 200px 100%;
+      animation: skeleton-shimmer 1.6s ease-in-out infinite;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800">
+
+<div class="max-w-2xl mx-auto px-6 py-16">
+
+    <!-- Header -->
+    <header class="mb-12 border-b border-slate-200 pb-6">
+      <h1 class="font-serif text-3xl font-bold tracking-tight text-slate-900">AI 学术知识库</h1>
+      <p class="mt-2 text-sm text-slate-500">输入文献 URL、摘要文本或上传 PDF / 图片，AI 自动解析并归档至知识库。</p>
+    </header>
+
+    <!-- Form -->
+    <form id="mainForm" class="space-y-6">
+
+      <!-- ⚠️ 必填配置：请在此处填入你的 n8n Webhook 链接 -->
+      <div>
+        <label for="webhookUrl" class="block text-sm font-medium text-slate-700 mb-1">Webhook URL</label>
+        <input
+          type="url"
+          id="webhookUrl"
+          placeholder="http://localhost:5678/webhook/tooltest"
+          class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 placeholder:text-slate-400 bg-white"
+        />
+      </div>
+
+      <!-- ⚠️ 必填配置：请在此处填入你的 Airtable Base 链接（用于生成文献查阅链接） -->
+      <div>
+        <label for="airtableBase" class="block text-sm font-medium text-slate-700 mb-1">Airtable Base URL</label>
+        <input
+          type="url"
+          id="airtableBase"
+          placeholder="https://airtable.com/appvlIM7YwohdfIs3/tblE8TgHo5MPJdJoD/viwLAGrVxDgxjmhKs"
+          class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 placeholder:text-slate-400 bg-white"
+        />
+      </div>
+
+      <!-- Data Type Selector -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-2">数据类型</label>
+        <div class="flex gap-2">
+          <button type="button" data-type="url" class="type-btn flex-1 border border-slate-200 rounded-md px-3 py-2 text-sm font-medium transition-colors bg-white hover:bg-slate-50">URL</button>
+          <button type="button" data-type="text" class="type-btn flex-1 border border-slate-200 rounded-md px-3 py-2 text-sm font-medium transition-colors bg-white hover:bg-slate-50">纯文本</button>
+          <button type="button" data-type="file" class="type-btn flex-1 border border-slate-200 rounded-md px-3 py-2 text-sm font-medium transition-colors bg-white hover:bg-slate-50">文件</button>
+        </div>
+      </div>
+
+      <!-- Text Input (URL / Text) -->
+      <div id="textInputGroup">
+        <label for="textContent" id="textInputLabel" class="block text-sm font-medium text-slate-700 mb-1">输入内容</label>
+        <textarea
+          id="textContent"
+          rows="4"
+          placeholder="在此输入 URL 或文本内容..."
+          class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 placeholder:text-slate-400 bg-white resize-none"
+        ></textarea>
+      </div>
+
+      <!-- File Input -->
+      <div id="fileInputGroup" class="hidden">
+        <label for="fileInput" class="block text-sm font-medium text-slate-700 mb-1">上传文件（PDF / 图片，≤ 5MB）</label>
+        <input
+          type="file"
+          id="fileInput"
+          accept=".pdf,.png,.jpg,.jpeg,.webp"
+          class="w-full border border-slate-200 rounded-md px-3 py-2 text-sm file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 bg-white"
+        />
+        <p id="fileInfo" class="mt-1 text-xs text-slate-400 hidden"></p>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        id="submitBtn"
+        class="w-full bg-slate-800 text-white rounded-md px-4 py-2.5 text-sm font-medium hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        <span id="btnText">提交解析</span>
+        <span id="btnLoading" class="hidden items-center gap-1">
+          <span class="loading-dot inline-block w-1.5 h-1.5 bg-white rounded-full"></span>
+          <span class="loading-dot inline-block w-1.5 h-1.5 bg-white rounded-full"></span>
+          <span class="loading-dot inline-block w-1.5 h-1.5 bg-white rounded-full"></span>
+          <span class="ml-1">AI 正在进行学术解析...</span>
+        </span>
+      </button>
+    </form>
+
+    <!-- Error Message -->
+    <div id="errorMsg" class="hidden mt-4 border border-red-200 bg-red-50 text-red-700 rounded-md px-4 py-3 text-sm"></div>
+
+    <!-- Results -->
+    <section id="results" class="mt-10 space-y-4"></section>
+
+    <!-- 最近收录 -->
+    <section id="historySection" class="mt-12">
+      <h2 class="font-serif text-xl font-bold text-slate-900 border-b border-slate-200 pb-3 mb-6 flex items-center gap-2">
+        <span>📖 最近收录</span>
+        <span id="historyCount" class="text-xs font-sans font-normal text-slate-400"></span>
+      </h2>
+      <div id="historyList" class="space-y-0"></div>
+    </section>
+
+  </div>
+
+  <script>
+    // ==================== ⚠️ 必填配置：Webhook 接口地址 ====================
+    // ⚠️ 如果在此处遇到 CORS 报错，必须前往 n8n 的 Webhook 节点设置中，添加并开启 "Respond with CORS Headers" 选项。
+    const submitWebhookUrl = 'http://localhost:5678/webhook/tooltest';       // ⚠️ 必填配置：文献提交接口
+    const historyWebhookUrl = 'http://localhost:5678/webhook/get-history';       // ⚠️ 必填配置：历史记录获取接口（GET）
+
+    // ==================== DOM References ====================
+    const form = document.getElementById('mainForm');
+    const webhookInput = document.getElementById('webhookUrl');
+    const airtableInput = document.getElementById('airtableBase');
+    const typeButtons = document.querySelectorAll('.type-btn');
+    const textInputGroup = document.getElementById('textInputGroup');
+    const textInputLabel = document.getElementById('textInputLabel');
+    const textContent = document.getElementById('textContent');
+    const fileInputGroup = document.getElementById('fileInputGroup');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnLoading = document.getElementById('btnLoading');
+    const errorMsg = document.getElementById('errorMsg');
+    const resultsSection = document.getElementById('results');
+
+    let selectedType = 'url';
+    let isSubmitting = false;
+
+    // ==================== Type Switch ====================
+    typeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedType = btn.dataset.type;
+        typeButtons.forEach(b => {
+          b.classList.remove('bg-slate-800', 'text-white', 'border-slate-800');
+          b.classList.add('bg-white', 'text-slate-800', 'border-slate-200');
+        });
+        btn.classList.remove('bg-white', 'text-slate-800', 'border-slate-200');
+        btn.classList.add('bg-slate-800', 'text-white', 'border-slate-800');
+
+        if (selectedType === 'file') {
+          textInputGroup.classList.add('hidden');
+          fileInputGroup.classList.remove('hidden');
+        } else {
+          textInputGroup.classList.remove('hidden');
+          fileInputGroup.classList.add('hidden');
+          textInputLabel.textContent = selectedType === 'url' ? '输入 URL' : '输入文本';
+          textContent.placeholder = selectedType === 'url' ? 'https://arxiv.org/abs/...' : '在此粘贴摘要或正文...';
+        }
+        hideError();
+      });
+    });
+
+    // Default selection
+    typeButtons[0].click();
+
+    // ==================== File Validation ====================
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        fileInfo.classList.add('hidden');
+        return;
+      }
+      const sizeMB = file.size / (1024 * 1024);
+      if (sizeMB > 5) {
+        fileInfo.textContent = `文件大小 ${sizeMB.toFixed(1)}MB 超过 5MB 限制`;
+        fileInfo.classList.remove('hidden');
+        fileInfo.classList.add('text-red-500');
+        fileInput.value = '';
+        return;
+      }
+      fileInfo.textContent = `${file.name}（${sizeMB.toFixed(2)}MB）`;
+      fileInfo.classList.remove('hidden', 'text-red-500');
+      fileInfo.classList.add('text-slate-400');
+    });
+
+    // ==================== Helpers ====================
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorMsg.classList.add('hidden');
+    }
+
+    function setLoading(loading) {
+      isSubmitting = loading;
+      submitBtn.disabled = loading;
+      if (loading) {
+        btnText.classList.add('hidden');
+        btnLoading.classList.remove('hidden');
+        btnLoading.classList.add('flex');
+      } else {
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
+        btnLoading.classList.remove('flex');
+      }
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result;
+          const base64 = dataUrl.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ==================== Submit ====================
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const webhookUrl = webhookInput.value.trim();
+      if (!webhookUrl) {
+        showError('请填写 Webhook URL');
+        return;
+      }
+
+      let payload = {};
+
+      if (selectedType === 'url' || selectedType === 'text') {
+        const content = textContent.value.trim();
+        if (!content) {
+          showError(selectedType === 'url' ? '请输入 URL' : '请输入文本内容');
+          return;
+        }
+        payload = { type: selectedType, content };
+      } else {
+        const file = fileInput.files[0];
+        if (!file) {
+          showError('请选择文件');
+          return;
+        }
+        const base64 = await fileToBase64(file);
+        payload = {
+          type: 'file',
+          fileName: file.name,
+          mimeType: file.type,
+          content: base64,
+        };
+      }
+
+      setLoading(true);
+
+      try {
+        const resp = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!resp.ok) {
+          throw new Error(`服务器返回 ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        renderResults(data);
+      } catch (err) {
+        showError('提交失败（请确保 n8n 接口已启动且允许跨域）');
+        console.error('[submit]', err);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    // ==================== Render ====================
+    function renderResults(data) {
+      const records = Array.isArray(data) ? data : [data];
+
+      records.forEach((record, index) => {
+        const fields = record.fields || record.json || record;
+        const title = fields['标题'] || fields['title'] || '未命名文献';
+        const category = fields['分类'] || fields['category'] || '未分类';
+        const recordId = fields['id'] || record.id || '';
+        const airtableBase = airtableInput.value.trim().replace(/\/+$/, '');
+        const link = recordId && airtableBase ? `${airtableBase}/${recordId}` : '#';
+
+        const card = document.createElement('div');
+        card.className = 'animate-fade-in border border-slate-200 rounded-md bg-white p-5';
+        card.style.animationDelay = `${index * 0.1}s`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <h3 class="font-serif text-lg font-semibold text-slate-900 leading-snug">${escapeHtml(title)}</h3>
+              <span class="inline-block mt-2 text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 rounded px-2 py-0.5">${escapeHtml(category)}</span>
+            </div>
+            ${link !== '#' ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="shrink-0 text-xs text-slate-500 hover:text-slate-800 underline underline-offset-2 mt-1">查阅文献 →</a>` : ''}
+          </div>
+        `;
+
+        resultsSection.prepend(card);
+      });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ==================== 历史记录 ====================
+    const historyList = document.getElementById('historyList');
+    const historyCount = document.getElementById('historyCount');
+    const airtableBaseDefault = airtableInput.value.trim().replace(/\/+$/, '');
+
+    // 预填 Webhook URL
+    if (!webhookInput.value.trim()) {
+      webhookInput.value = submitWebhookUrl;
+    }
+
+    function renderSkeleton(count) {
+      historyList.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-4 py-3.5 px-4 border-b border-slate-100';
+        row.innerHTML = `
+          <div class="skeleton-line h-4 flex-1" style="max-width:${160 + Math.random() * 200}px"></div>
+          <div class="skeleton-line h-5 w-14 shrink-0"></div>
+        `;
+        historyList.appendChild(row);
+      }
+    }
+
+    function renderHistoryEmpty(msg) {
+      historyList.innerHTML = `
+        <div class="py-12 text-center">
+          <p class="text-sm text-slate-400 font-serif italic">${msg}</p>
+        </div>
+      `;
+    }
+
+    function renderHistoryRecords(records) {
+      historyList.innerHTML = '';
+      historyCount.textContent = `共 ${records.length} 条`;
+
+      records.forEach((record, index) => {
+        const fields = record.fields || record.json || record || {};
+
+        // 🌟 照妖镜：如果找不到标题，直接把原始数据打在网页屏幕上！
+        const title = fields['标题'] || fields['title'] || fields['原始文本'] || ('[数据解剖] ' + JSON.stringify(record).substring(0, 80));
+
+        const category = fields['分类'] || fields['category'] || '未分类';
+        const recordId = fields['id'] || record.id || '';
+
+        const airtableBase = airtableBaseDefault || airtableInput.value.trim().replace(/\/+$/, '');
+        const link = recordId && airtableBase ? `${airtableBase}/${recordId}` : '';
+
+        const row = document.createElement('a');
+        row.className = 'flex items-center gap-4 py-3.5 px-4 border-b border-slate-100 transition-colors hover:bg-slate-50/80 group';
+
+        row.href = link || 'javascript:void(0);';
+        row.target = link ? '_blank' : '_self';
+        row.rel = link ? 'noopener' : '';
+        row.style.animationDelay = `${index * 0.04}s`;
+
+        if (!link) {
+          row.style.cursor = 'default';
+          row.style.textDecoration = 'none';
+        }
+
+        row.innerHTML = `
+          <span class="flex-1 min-w-0 font-serif text-sm text-slate-800 leading-snug truncate group-hover:text-slate-950">${escapeHtml(title)}</span>
+          <span class="shrink-0 text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200 rounded px-2 py-0.5">${escapeHtml(category)}</span>
+          ${link ? '<span class="shrink-0 text-slate-300 text-xs group-hover:text-slate-500 transition-colors ml-1">→</span>' : ''}
+        `;
+
+        historyList.appendChild(row);
+      });
+    }
+
+    async function fetchHistory() {
+      renderSkeleton(5);
+
+      try {
+        const resp = await fetch(historyWebhookUrl, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+        });
+
+        const data = await resp.json();
+
+        // 🌟 补回剥壳逻辑（专门应对 Airtable 和 n8n 的奇怪嵌套）
+        let rawData = data;
+        if (data && data.records) rawData = data.records;
+        else if (data && data.data) rawData = data.data;
+
+        let records = [rawData].flat(Infinity).filter(item => item && typeof item === 'object' && Object.keys(item).length > 0);
+
+        if (records.length === 0) {
+          renderHistoryEmpty('暂无收录');
+          return;
+        }
+
+        renderHistoryRecords(records);
+      } catch (err) {
+        renderHistoryEmpty('获取后端数据失败');
+        console.error('[history error]', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchHistory);
+  </script>
+</body>
+</html>

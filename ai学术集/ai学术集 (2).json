@@ -1,0 +1,1354 @@
+{
+  "name": "ai学术集",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/tooltest",
+        "responseMode": "lastNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -880,
+        -464
+      ],
+      "id": "00f7feb4-7362-43f9-9a07-85c9280f8471",
+      "name": "Webhook",
+      "webhookId": "4be23197-0437-4450-bc22-933987bd002c"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "url",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ab0ae9cd-6646-41f9-992d-582f9832b24a"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0ca04cb2-ebe7-4b6e-a1f3-5cbdade9dd4d",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f36edeed-dd4e-4aa5-9c5b-986eb49490df",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -608,
+        -496
+      ],
+      "id": "9e860132-c302-4a8d-8b15-3d99c4658ede",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.content }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -320,
+        -768
+      ],
+      "id": "700a642f-0039-4494-9404-d0b88bbc0c07",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "cssSelector": "body"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        -768
+      ],
+      "id": "0fd1f75f-7bc9-4d56-8e98-faa287fb2105",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5f7ecdff-ccbb-40dd-b56e-1fa087576cd9",
+              "name": "正文",
+              "value": "={{ $json[\"\"] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        -768
+      ],
+      "id": "d42773f9-6724-42b8-bc12-6d39ddd67b04",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 获取来自上一个 AI 节点的所有输入数据\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n    try {\n        // 提取 AI 生成的那个脏脏的字符串 (注意：根据你的截图，字段名是 output)\n        const aiString = item.json.output; \n        \n        // 核心魔法：把字符串一键解析成真正的 JSON 对象\n        const cleanData = JSON.parse(aiString);\n        \n        // 组装成 n8n 标准的数据格式并输出\n        results.push({\n            json: cleanData\n        });\n        \n    } catch (error) {\n        // 容错机制：如果 AI 某次发疯没输出标准 JSON，防止整个工作流崩溃\n        results.push({\n            json: {\n                error: \"解析失败，AI 未输出标准 JSON\",\n                raw_data: item.json\n            }\n        });\n    }\n}\n\n// 返回清洗后整齐的数据\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -768
+      ],
+      "id": "6b360eba-d485-4644-a13f-08a0910d48bf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appvlIM7YwohdfIs3",
+          "mode": "list",
+          "cachedResultName": "ai学术采集站",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblE8TgHo5MPJdJoD",
+          "mode": "list",
+          "cachedResultName": "内容采集",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3/tblE8TgHo5MPJdJoD"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "标题": "={{ $json.title }}",
+            "输入源": "={{ $('Webhook').item.json.body.content }}",
+            "AI 摘要": "={{ $json.summary }}",
+            "标签": "={{ $json.tags }}",
+            "分类": "={{ $json.category }}",
+            "原始文本": "={{ $('HTTP Request').item.json.data }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "标题",
+              "displayName": "标题",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "输入源",
+              "displayName": "输入源",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI 摘要",
+              "displayName": "AI 摘要",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "分类",
+              "displayName": "分类",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "论文文献",
+                  "value": "论文文献"
+                },
+                {
+                  "name": "网课教程",
+                  "value": "网课教程"
+                },
+                {
+                  "name": "网页文章",
+                  "value": "网页文章"
+                },
+                {
+                  "name": "未分类",
+                  "value": "未分类"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "标签",
+              "displayName": "标签",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "",
+                  "value": ""
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "原始文本",
+              "displayName": "原始文本",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "创建时间",
+              "displayName": "创建时间",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        -768
+      ],
+      "id": "e1524485-c27f-4b4f-90ac-e01e2e6d1405",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "rSyhQ43aGwfp17mL",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (let item of items) {\n    // 检查是不是传了文件过来\n    if (item.json.body && item.json.body.content) {\n        const base64String = item.json.body.content;\n        const mimeType = item.json.body.mimeType || 'application/octet-stream';\n        const fileName = item.json.body.fileName || 'upload_file';\n\n        // 将 Base64 挂载到 n8n 的专属二进制字段 (binary) 上\n        item.binary = {\n            data: {\n                data: base64String,\n                mimeType: mimeType,\n                fileName: fileName\n            }\n        };\n    }\n}\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        -32
+      ],
+      "id": "3bc10d6f-7ce5-4c5c-8948-77c2a3739ec1",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cdf898fe-6076-457d-ab27-987ccf65a510",
+              "leftValue": "={{ $json.body.mimeType }}",
+              "rightValue": "=image",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -32,
+        -32
+      ],
+      "id": "35c3354e-ee61-43b9-a2a0-83f657e28c3b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        256,
+        128
+      ],
+      "id": "416b76b9-3cbe-492a-9e77-c7aa545e73ca",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=",
+        "options": {
+          "systemMessage": "你是一个专业的学术助手和高级多模态图像分析专家。你的任务是仔细观察并阅读我提供的【图片内容】（可能包含学术资料、课堂板书、PPT或论文截图），精准识别图中的文字、公式、图表及核心主旨，并提取出结构化的信息。\n\n无论图中是什么语言，请统一使用**中文**进行总结和输出。\n\n### 提取与处理要求：\n1. Title (标题)：为这张图中的内容拟定一个精准、简短的标题。如果图中顶部有明显的标题、课件名称或论文题目，请直接提取使用。\n2. Summary (摘要)：撰写一段约 200-300 字的高质量内容摘要。你需要把图中散落的知识点、板书逻辑或核心公式串联起来，总结成一段通顺的学术笔记。\n3. Tags (标签)：提取 3 到 5 个最具代表性的专业关键词。\n4. Category (分类)：根据图片属性，**必须且只能**从以下四个分类中选择一个最匹配的：\n   - \"论文文献\" (包含学术论文、期刊、研究报告截图)\n   - \"网课教程\" (包含课堂板书、PPT课件、技术教程、学习笔记)\n   - \"网页文章\" (包含普通新闻、行业资讯截图)\n   - \"未分类\" (如果都不符合，选这个)\n\n### 强制输出格式：\n你必须严格以 JSON 格式输出，除此之外不要包含任何开场白、解释性文字或 Markdown 代码块标记（如 ```json）。你的回复必须是一个能够被程序直接解析的干净 JSON 对象。\n\n{\n  \"title\": \"提取或拟定的标题\",\n  \"summary\": \"这是你生成的精简摘要内容...\",\n  \"tags\": [\"标签1\", \"标签2\", \"标签3\"],\n  \"category\": \"网课教程\"\n}",
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        192,
+        -288
+      ],
+      "id": "6db79460-3bce-4079-8fd5-9c94cdb4be5b",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=qwen-vl-ocr",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        272,
+        -64
+      ],
+      "id": "849406f0-380d-4af7-a7fc-d089a0ad22dd",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "4gWbMIRWx89I6YL3",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7706cee1-0325-4b1a-b72e-0c592b4c9daa",
+              "name": "正文",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        128
+      ],
+      "id": "232792e5-7ba3-494c-9acc-e071bbc83e15",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json[\"正文\"] }}",
+        "options": {
+          "systemMessage": "=你是一个专业的学术助手和高级数据提取专家。你的任务是仔细阅读我提供的【网页正文内容】，理解其核心主旨，并提取出结构化的信息。\n\n无论原文是什么语言，请统一使用**中文**进行总结和输出。\n\n### 提取与处理要求：\n1. Title (标题)：为这篇文章拟定一个精准、简短的标题。如果正文开头有明显的原标题，请直接提取使用。\n2. Summary (摘要)：撰写一段约 200-300 字的高质量内容摘要，需包含文章的核心论点、主要结论或关键知识点。\n3. Tags (标签)：提取 3 到 5 个最具代表性的专业关键词。\n4. Category (分类)：根据文章属性，**必须且只能**从以下四个分类中选择一个最匹配的：\n   - \"论文文献\" (包含学术论文、期刊、研究报告)\n   - \"网课教程\" (包含技术教程、学习指南、操作手册)\n   - \"网页文章\" (包含普通新闻、行业资讯、博客观点)\n   - \"未分类\" (如果都不符合，选这个)\n\n### 强制输出格式：\n你必须严格以 JSON 格式输出，除此之外不要包含任何开场白、解释性文字或 Markdown 代码块标记（如 ```json）。你的回复必须是一个能够被程序直接解析的干净 JSON 对象。\n\n{\n  \"title\": \"提取或拟定的标题\",\n  \"summary\": \"这是你生成的精简摘要内容...\",\n  \"tags\": [\"标签1\", \"标签2\", \"标签3\"],\n  \"category\": \"网页文章\"\n}\n\n### 以下是需要处理的网页正文内容：\n{{ $json[\"正文\"] }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        896,
+        128
+      ],
+      "id": "ff1a4ed5-66b8-4f51-b738-ea9ae435201e",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v4-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        896,
+        384
+      ],
+      "id": "604070d9-6050-462a-9b02-189c08bc0e96",
+      "name": "DeepSeek Chat Model1",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "LeG7gPFB9Mq1ZJPz",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 获取来自上一个 AI 节点的所有输入数据\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n    try {\n        // 提取 AI 生成的那个脏脏的字符串 (注意：根据你的截图，字段名是 output)\n        const aiString = item.json.output; \n        \n        // 核心魔法：把字符串一键解析成真正的 JSON 对象\n        const cleanData = JSON.parse(aiString);\n        \n        // 组装成 n8n 标准的数据格式并输出\n        results.push({\n            json: cleanData\n        });\n        \n    } catch (error) {\n        // 容错机制：如果 AI 某次发疯没输出标准 JSON，防止整个工作流崩溃\n        results.push({\n            json: {\n                error: \"解析失败，AI 未输出标准 JSON\",\n                raw_data: item.json\n            }\n        });\n    }\n}\n\n// 返回清洗后整齐的数据\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        128
+      ],
+      "id": "340e8a29-708c-4df9-9fa8-61ec4e0d5b3b",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appvlIM7YwohdfIs3",
+          "mode": "list",
+          "cachedResultName": "ai学术采集站",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblE8TgHo5MPJdJoD",
+          "mode": "list",
+          "cachedResultName": "内容采集",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3/tblE8TgHo5MPJdJoD"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "标题": "={{ $json.title }}",
+            "输入源": "pdf文件",
+            "AI 摘要": "={{ $json.summary }}",
+            "分类": "={{ $json.category }}",
+            "标签": "={{ $json.tags }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "标题",
+              "displayName": "标题",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "输入源",
+              "displayName": "输入源",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI 摘要",
+              "displayName": "AI 摘要",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "分类",
+              "displayName": "分类",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "论文文献",
+                  "value": "论文文献"
+                },
+                {
+                  "name": "网课教程",
+                  "value": "网课教程"
+                },
+                {
+                  "name": "网页文章",
+                  "value": "网页文章"
+                },
+                {
+                  "name": "未分类",
+                  "value": "未分类"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "标签",
+              "displayName": "标签",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "",
+                  "value": ""
+                },
+                {
+                  "name": "伟大工作",
+                  "value": "伟大工作"
+                },
+                {
+                  "name": "好奇心",
+                  "value": "好奇心"
+                },
+                {
+                  "name": "原创性",
+                  "value": "原创性"
+                },
+                {
+                  "name": "职业选择",
+                  "value": "职业选择"
+                },
+                {
+                  "name": "学术指导",
+                  "value": "学术指导"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "原始文本",
+              "displayName": "原始文本",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "创建时间",
+              "displayName": "创建时间",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1472,
+        128
+      ],
+      "id": "ae6dcd23-0b1d-49a3-8e06-a39dddc35ce6",
+      "name": "Create a record1",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "rSyhQ43aGwfp17mL",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n    // 1. 获取原始脏文本 (⚠️注意：把 ai_output 换成你上一步输出的字段名)\n    let rawStr = item.json.output || \"\"; \n    if (typeof rawStr !== 'string') rawStr = JSON.stringify(rawStr);\n\n    // 暴力定义默认值\n    let title = \"未提取到标题\";\n    let summary = \"未提取到摘要\";\n    let tags = [];\n    let category = \"学术\";\n\n    try {\n        // ⚔️ 暴力拆解 1：提标题 (找 title/标题 冒号后面的字，遇到逗号或换行就停)\n        let titleMatch = rawStr.match(/(?:title|标题)[”\"]?\\s*[：:]\\s*[“\"]?([^”\",，\\n]+)/i);\n        if (titleMatch) title = titleMatch[1].trim();\n\n        // ⚔️ 暴力拆解 2：提类别 (找 category/类别 冒号后面的字)\n        let categoryMatch = rawStr.match(/(?:category|类别)[”\"]?\\s*[：:]\\s*[“\"]?([^”\"\\}\\n]+)/i);\n        if (categoryMatch) category = categoryMatch[1].trim();\n\n        // ⚔️ 暴力拆解 3：提标签 (直接把方括号 [...] 里的内容全挖出来)\n        let tagsMatch = rawStr.match(/\\[([\\s\\S]*?)\\]/);\n        if (tagsMatch) {\n            // 把里面乱七八糟的引号、换行全去掉，按逗号切成数组\n            tags = tagsMatch[1].split(/[,，\\n]/)\n                .map(t => t.replace(/[\"“”]/g, '').trim())\n                .filter(t => t.length > 0);\n        }\n\n        // ⚔️ 暴力拆解 4：提摘要 (最难搞的一个)\n        // 逻辑：找到 summary/摘要，然后一直往后切，直到撞见 tags 或 category 关键词才停！无视中间的所有引号！\n        let summaryRegex = /(?:summary|摘要)[”\"]?\\s*[：:]\\s*[“\"]?([\\s\\S]*?)(?=[”\"]?\\s*[,，]?\\s*[”\"]?(?:tags|标签|category|类别))/i;\n        let summaryMatch = rawStr.match(summaryRegex);\n        if (summaryMatch) {\n            let tempSummary = summaryMatch[1];\n            // 把末尾不小心切进来的多余引号或逗号擦干净\n            summary = tempSummary.replace(/[”\",，\\s]*$/, '').trim();\n        }\n\n        // 组装出完美的干净数据\n        results.push({\n            json: {\n                title: title,\n                summary: summary,\n                tags: tags,\n                category: category\n            }\n        });\n\n    } catch (error) {\n        // 就算天塌下来，也要输出点东西，不让工作流卡死\n        results.push({\n            json: {\n                error: \"暴力拆解失败\",\n                raw_string: rawStr\n            }\n        });\n    }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        -176
+      ],
+      "id": "6745116d-1791-4667-a6c7-c2ade11da090",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appvlIM7YwohdfIs3",
+          "mode": "list",
+          "cachedResultName": "ai学术采集站",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblE8TgHo5MPJdJoD",
+          "mode": "list",
+          "cachedResultName": "内容采集",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3/tblE8TgHo5MPJdJoD"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "标题": "={{ $json.title }}",
+            "输入源": "=图片提供",
+            "AI 摘要": "={{ $json.summary }}",
+            "标签": "={{ $json.tags }}",
+            "分类": "={{ $json.category }}",
+            "原始文本": "={{ $('AI Agent1').item.json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "标题",
+              "displayName": "标题",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "输入源",
+              "displayName": "输入源",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI 摘要",
+              "displayName": "AI 摘要",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "分类",
+              "displayName": "分类",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "论文文献",
+                  "value": "论文文献"
+                },
+                {
+                  "name": "网课教程",
+                  "value": "网课教程"
+                },
+                {
+                  "name": "网页文章",
+                  "value": "网页文章"
+                },
+                {
+                  "name": "未分类",
+                  "value": "未分类"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "标签",
+              "displayName": "标签",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "",
+                  "value": ""
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "原始文本",
+              "displayName": "原始文本",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "创建时间",
+              "displayName": "创建时间",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        -176
+      ],
+      "id": "9d208e83-5597-4940-9a63-ac39a47b672a",
+      "name": "Create a record2",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "rSyhQ43aGwfp17mL",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json['正文'] }}",
+        "options": {
+          "systemMessage": "你是一个专业的学术助手和高级数据提取专家。你的任务是仔细阅读我提供的【网页正文内容】，理解其核心主旨，并提取出结构化的信息。\n\n无论原文是什么语言，请统一使用**中文**进行总结和输出。\n\n### 提取与处理要求：\n1. Title (标题)：为这篇文章拟定一个精准、简短的标题。如果正文开头有明显的原标题，请直接提取使用。\n2. Summary (摘要)：撰写一段约 200-300 字的高质量内容摘要，需包含文章的核心论点、主要结论或关键知识点。\n3. Tags (标签)：提取 3 到 5 个最具代表性的专业关键词。\n4. Category (分类)：根据文章属性，**必须且只能**从以下四个分类中选择一个最匹配的：\n   - \"论文文献\" (包含学术论文、期刊、研究报告)\n   - \"网课教程\" (包含技术教程、学习指南、操作手册)\n   - \"网页文章\" (包含普通新闻、行业资讯、博客观点)\n   - \"未分类\" (如果都不符合，选这个)\n\n### 强制输出格式：\n你必须严格以 JSON 格式输出，除此之外不要包含任何开场白、解释性文字或 Markdown 代码块标记（如 ```json）。你的回复必须是一个能够被程序直接解析的干净 JSON 对象。\n\n{\n  \"title\": \"提取或拟定的标题\",\n  \"summary\": \"这是你生成的精简摘要内容...\",\n  \"tags\": [\"标签1\", \"标签2\", \"标签3\"],\n  \"category\": \"网页文章\"\n}\n\n### 以下是需要处理的网页正文内容：\n{{ $json[\"正文\"] }} 视觉模型的提示词按这个来简单改一下"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        544,
+        -768
+      ],
+      "id": "6e57bb44-3739-424c-a4d7-b16ee263a7f2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v4-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -528
+      ],
+      "id": "ad051399-554c-48a0-a9b3-77d6fb90daea",
+      "name": "DeepSeek Chat Model",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "LeG7gPFB9Mq1ZJPz",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.content }}",
+        "options": {
+          "systemMessage": "你是一个专业的学术助手和高级数据提取专家。你的任务是仔细阅读我提供的【网页正文内容】，理解其核心主旨，并提取出结构化的信息。\n\n无论原文是什么语言，请统一使用**中文**进行总结和输出。\n\n### 提取与处理要求：\n1. Title (标题)：为这篇文章拟定一个精准、简短的标题。如果正文开头有明显的原标题，请直接提取使用。\n2. Summary (摘要)：撰写一段约 200-300 字的高质量内容摘要，需包含文章的核心论点、主要结论或关键知识点。\n3. Tags (标签)：提取 3 到 5 个最具代表性的专业关键词。\n4. Category (分类)：根据文章属性，**必须且只能**从以下四个分类中选择一个最匹配的：\n   - \"论文文献\" (包含学术论文、期刊、研究报告)\n   - \"网课教程\" (包含技术教程、学习指南、操作手册)\n   - \"网页文章\" (包含普通新闻、行业资讯、博客观点)\n   - \"未分类\" (如果都不符合，选这个)\n\n### 强制输出格式：\n你必须严格以 JSON 格式输出，除此之外不要包含任何开场白、解释性文字或 Markdown 代码块标记（如 ```json）。你的回复必须是一个能够被程序直接解析的干净 JSON 对象。\n\n{\n  \"title\": \"提取或拟定的标题\",\n  \"summary\": \"这是你生成的精简摘要内容...\",\n  \"tags\": [\"标签1\", \"标签2\", \"标签3\"],\n  \"category\": \"网页文章\"\n}\n\n### 以下是需要处理的网页正文内容：\n {{ $json.body.content }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -384,
+        -480
+      ],
+      "id": "b2dda441-13ec-4513-b58c-0795bfb46dca",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": "deepseek-v4-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatDeepSeek",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -256
+      ],
+      "id": "165dc72c-4e92-4b56-8850-518d939651ec",
+      "name": "DeepSeek Chat Model2",
+      "credentials": {
+        "deepSeekApi": {
+          "id": "LeG7gPFB9Mq1ZJPz",
+          "name": "DeepSeek account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 获取来自上一个 AI 节点的所有输入数据\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n    try {\n        // 提取 AI 生成的那个脏脏的字符串 (注意：根据你的截图，字段名是 output)\n        const aiString = item.json.output; \n        \n        // 核心魔法：把字符串一键解析成真正的 JSON 对象\n        const cleanData = JSON.parse(aiString);\n        \n        // 组装成 n8n 标准的数据格式并输出\n        results.push({\n            json: cleanData\n        });\n        \n    } catch (error) {\n        // 容错机制：如果 AI 某次发疯没输出标准 JSON，防止整个工作流崩溃\n        results.push({\n            json: {\n                error: \"解析失败，AI 未输出标准 JSON\",\n                raw_data: item.json\n            }\n        });\n    }\n}\n\n// 返回清洗后整齐的数据\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -480
+      ],
+      "id": "b7250c44-8b7d-400a-b44c-9d177467e10b",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appvlIM7YwohdfIs3",
+          "mode": "list",
+          "cachedResultName": "ai学术采集站",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblE8TgHo5MPJdJoD",
+          "mode": "list",
+          "cachedResultName": "内容采集",
+          "cachedResultUrl": "https://airtable.com/appvlIM7YwohdfIs3/tblE8TgHo5MPJdJoD"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "标题": "={{ $json.title }}",
+            "输入源": "={{ $('Webhook').item.json.body.content }}",
+            "AI 摘要": "={{ $json.summary }}",
+            "标签": "={{ $json.tags }}",
+            "分类": "={{ $json.category }}",
+            "原始文本": "={{ $('Switch').item.json.body.content }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "标题",
+              "displayName": "标题",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "输入源",
+              "displayName": "输入源",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI 摘要",
+              "displayName": "AI 摘要",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "分类",
+              "displayName": "分类",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "论文文献",
+                  "value": "论文文献"
+                },
+                {
+                  "name": "网课教程",
+                  "value": "网课教程"
+                },
+                {
+                  "name": "网页文章",
+                  "value": "网页文章"
+                },
+                {
+                  "name": "未分类",
+                  "value": "未分类"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "标签",
+              "displayName": "标签",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [
+                {
+                  "name": "",
+                  "value": ""
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "原始文本",
+              "displayName": "原始文本",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "创建时间",
+              "displayName": "创建时间",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        256,
+        -480
+      ],
+      "id": "b65098ef-276d-4e37-9e92-dde91acd13cc",
+      "name": "Create a record3",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "rSyhQ43aGwfp17mL",
+          "name": "Airtable Personal Access Token account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Create a record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Create a record2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepSeek Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Create a record3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0be5d72f-8f47-4520-87f3-d9971effd8f9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7fe004713c080f1de0665d2f16fc6c614a787f370a80b03b86f52f962699ea80"
+  },
+  "id": "Bhj39kGJarBRHdbc",
+  "tags": []
+}
